@@ -1,19 +1,29 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import ContactForm from "./components/ContactForm";
 import ContactList from "./components/ContactList";
 import FilterInput from "./components/FilterInput";
+import Statistics from "./components/Statistics";
 
 const HomePage = () => {
   const [contacts, setContacts] = useState([]);
   const [filter, setFilter] = useState("")
   const [isLoaded, setIsLoaded] = useState(false)
 
-  const filteredContacts = contacts.filter(contact =>
-    contact.nome.toLowerCase().includes(filter.toLowerCase()) ||
-    contact.email.toLowerCase().includes(filter.toLowerCase())
-  );
+  const filteredContacts = useMemo(() => {
+    console.log('Filtrando contatos...'); // Só executa quando contacts ou filter mudam
+
+    if (!filter.trim()) {
+      return contacts;
+    }
+
+    return contacts.filter(contact =>
+      contact.nome.toLowerCase().includes(filter.toLowerCase()) ||
+      contact.email.toLowerCase().includes(filter.toLowerCase()) ||
+      contact.telefone.includes(filter)
+    );
+  }, [contacts, filter]);
 
   // Adicione este useEffect após os estados
   useEffect(() => {
@@ -31,6 +41,22 @@ const HomePage = () => {
     }
   }, [contacts, isLoaded]);
 
+  const stats = useMemo(() => {
+    console.log('Calculando estatísticas...');
+
+    const total = contacts.length;
+    const comEmail = contacts.filter(c => c.email).length;
+    const comTelefone = contacts.filter(c => c.telefone).length;
+
+    return {
+      total,
+      comEmail,
+      comTelefone,
+      semEmail: total - comEmail,
+      semTelefone: total - comTelefone
+    };
+  }, [contacts]);
+
   return (
     <div className="min-h-screen bg-gray-200 p-6">
       <div className="max-w-3xl mx-auto space-y-6">
@@ -43,6 +69,8 @@ const HomePage = () => {
         </header>
 
         <ContactForm setContacts={setContacts} />
+
+        <Statistics stats={stats} />
 
         <ContactList contacts={filteredContacts} setContacts={setContacts} />
       </div>
