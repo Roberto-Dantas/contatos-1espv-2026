@@ -1,31 +1,60 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import ContactForm from "./components/ContactForm";
 import ContactList from "./components/ContactList";
 import FilterInput from "./components/FilterInput";
+import Statistics from './components/Statistics';
 
 const HomePage = () => {
   const [contacts, setContacts] = useState([]);
   const [filter, setFilter] = useState("");
 
-const filteredContacts = contacts.filter(contact =>
-  contact.nome.toLowerCase().includes(filter.toLowerCase()) ||
-  contact.email.toLowerCase().includes(filter.toLowerCase())
-);
-const [isLoaded, setIsLoaded] = useState(false);
+  // Memoizar a lista filtrada
+  const filteredContacts = useMemo(() => {
+    console.log('Filtrando contatos...'); // Só executa quando contacts ou filter mudam
 
-useEffect(() => {
-  const savedContacts = localStorage.getItem('contatos');
-  if (savedContacts) {
-    setContacts(JSON.parse(savedContacts));
-  }
-  setIsLoaded(true);
-}, []);
-useEffect(() => {
-  if (isLoaded) {
-    localStorage.setItem('contatos', JSON.stringify(contacts));
-  }
-}, [contacts, isLoaded]);
+    if (!filter.trim()) {
+      return contacts;
+    }
+
+    return contacts.filter(contact =>
+      contact.nome.toLowerCase().includes(filter.toLowerCase()) ||
+      contact.email.toLowerCase().includes(filter.toLowerCase()) ||
+      contact.telefone.includes(filter)
+    );
+  }, [contacts, filter]);
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  useEffect(() => {
+    const savedContacts = localStorage.getItem('contatos');
+    if (savedContacts) {
+      setContacts(JSON.parse(savedContacts));
+    }
+    setIsLoaded(true);
+  }, []);
+  useEffect(() => {
+    if (isLoaded) {
+      localStorage.setItem('contatos', JSON.stringify(contacts));
+    }
+  }, [contacts, isLoaded]);
+
+  // Estatísticas memoizadas
+  const stats = useMemo(() => {
+    console.log('Calculando estatísticas...');
+
+    const total = contacts.length;
+    const comEmail = contacts.filter(c => c.email).length;
+    const comTelefone = contacts.filter(c => c.telefone).length;
+
+    return {
+      total,
+      comEmail,
+      comTelefone,
+      semEmail: total - comEmail,
+      semTelefone: total - comTelefone
+    };
+  }, [contacts]);
+
   return (
     <div className="min-h-screen bg-gray-200 p-6">
       <div className="max-w-3xl mx-auto space-y-6">
@@ -39,10 +68,11 @@ useEffect(() => {
           onChange={setFilter}
         />
 
-        
+
         <ContactForm setContacts={setContacts} />
 
         <ContactList contacts={filteredContacts} setContacts={setContacts} />
+        <Statistics stats={stats} />
       </div>
     </div>
   );
