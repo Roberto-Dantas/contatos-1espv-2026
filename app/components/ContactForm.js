@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import contactsApi from "../services/contactsApi";
 
 const ContactForm = ({ setContacts }) => {
     const [form, setForm] = useState({ nome: "", email: "", telefone: "" });
@@ -25,7 +26,22 @@ const ContactForm = ({ setContacts }) => {
         setForm((prev) => ({ ...prev, [name]: value }));
     }, []);
 
-    const handleSubmit = useCallback((e) => {
+    // const handleSubmit = (e) => {
+    //     e.preventDefault();
+
+    //     const newErrors = validate()
+
+    //     if (Object.keys(newErrors).length > 0) {
+    //         setErrors(newErrors);
+    //         return;
+    //     }
+
+    //     setContacts((prev) => [...prev, { ...form, id: Date.now() }]);
+    //     setForm({ nome: "", email: "", telefone: "" });
+    //     nomeInputRef.current.focus()
+    // };
+
+    const handleSubmit = async (e) => {
         e.preventDefault();
 
         const newErrors = validate()
@@ -35,10 +51,15 @@ const ContactForm = ({ setContacts }) => {
             return;
         }
 
-        setContacts((prev) => [...prev, { ...form, id: Date.now() }]);
-        setForm({ nome: "", email: "", telefone: "" });
-        nomeInputRef.current.focus()
-    }, []);
+        try {
+            const response = await contactsApi.post('/contatos', form)
+            setContacts((prev) => [...prev, { ...response.data }]);
+            setForm({ nome: "", email: "", telefone: "" });
+            nomeInputRef.current.focus()
+        } catch (error) {
+            console.log(error)
+        }
+    }
 
     return (
         <form

@@ -1,10 +1,8 @@
 import Link from "next/link";
 import { memo } from "react";
 
-const ContactItem = memo(({ contact, setContacts, ...props }) => {
-    const handleRemove = (id) => {
-        setContacts((prev) => prev.filter((c) => c.id !== id));
-    };
+const ContactItem = memo(({ contact, setContacts, handleRemove, ...props }) => {
+
 
     return (
         <li {...props} className="p-4 flex items-center justify-between">

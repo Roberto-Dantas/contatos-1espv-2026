@@ -2,6 +2,7 @@
 "use client";
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import contactsApi from '@/app/services/contactsApi';
 
 const ContactDetailPage = () => {
     const params = useParams();           // { id: "1234567890" }
@@ -9,24 +10,38 @@ const ContactDetailPage = () => {
     const [contact, setContact] = useState(null);
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        // Buscar contatos do localStorage
-        const savedContacts = localStorage.getItem('contatos');
-        if (savedContacts) {
-            const contacts = JSON.parse(savedContacts);
-            const foundContact = contacts.find(c => c.id === parseInt(params.id));
+    // useEffect(() => {
+    //     // Buscar contatos do localStorage
+    //     const savedContacts = localStorage.getItem('contatos');
+    //     if (savedContacts) {
+    //         const contacts = JSON.parse(savedContacts);
+    //         const foundContact = contacts.find(c => c.id === parseInt(params.id));
 
-            if (foundContact) {
-                setContact(foundContact);
-            } else {
-                // Contato não encontrado
-                router.push('/');
+    //         if (foundContact) {
+    //             setContact(foundContact);
+    //         } else {
+    //             // Contato não encontrado
+    //             router.push('/');
+    //         }
+    //     } else {
+    //         // Não há contatos salvos
+    //         router.push('/');
+    //     }
+    //     setLoading(false);
+    // }, [params.id, router]);
+
+    useEffect(() => {
+        const loadContact = async () => {
+            try {
+                const response = await contactsApi.get(`/contatos/${params.id}`)
+                setContact(response.data)
+                setLoading(false);
+            } catch (error) {
+                console.log(error)
             }
-        } else {
-            // Não há contatos salvos
-            router.push('/');
         }
-        setLoading(false);
+
+        loadContact()
     }, [params.id, router]);
 
     if (loading) {

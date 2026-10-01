@@ -1,7 +1,17 @@
+import { useCallback } from "react";
 import ContactItem from "./ContactItem"
+import contactsApi from "../services/contactsApi";
 
 const ContactList = ({ contacts, setContacts }) => {
 
+    const handleRemove = useCallback(async (id) => {
+        try {
+            await contactsApi.delete(`/contatos/${id}`)
+            setContacts((prev) => prev.filter((c) => c.id !== id));
+        } catch (error) {
+            console.log(error)
+        }
+    }, []);
 
     return (<section className="bg-white shadow rounded">
         <div className="px-4 py-3 border-b">
@@ -14,7 +24,7 @@ const ContactList = ({ contacts, setContacts }) => {
                 <li className="p-4 text-gray-500">Nenhum contato encontrado</li>
             ) : (
                 contacts.map((contact) => (
-                    <ContactItem key={contact.id} contact={contact} setContacts={setContacts} />
+                    <ContactItem key={contact.id} contact={contact} setContacts={setContacts} handleRemove={handleRemove} />
                 ))
             )}
         </ul>
